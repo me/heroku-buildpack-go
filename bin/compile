@@ -142,7 +142,7 @@ ver=$(expand_ver $ver)
 
 file=${GOFILE:-$ver.linux-amd64.tar.gz}
 url=${GOURL:-$(urlfor $ver $file)}
-warn "download from $url"
+warn "download from $url version $file"
 
 if test -e $build/bin && ! test -d $build/bin
 then
