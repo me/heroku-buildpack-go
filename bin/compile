@@ -124,6 +124,9 @@ then
     name=$(<$build/Godeps/Godeps.json jq -r .ImportPath)
     ver=$(<$build/Godeps/Godeps.json jq -r .GoVersion)
     TOOL="godep"
+elif test -f "$build/glide.lock"
+then
+    TOOL="glide"
 elif (test -d "$build/src" && test -n "$(find "$build/src" -type f -name '*.go' | sed 1q)")
 then
     ver=${GOVERSION:-$DEFAULT_GO_VERSION}
@@ -186,7 +189,7 @@ case $TOOL in
         GOBIN=$build/bin export GOBIN
         GOPATH=$build/.heroku/go export GOPATH
         PATH=$GOROOT/bin:$PATH
-        
+
         p=$GOPATH/src/$name
         mkdir -p $p
         cp -R $build/* $p
@@ -234,6 +237,46 @@ case $TOOL in
             step "Running: godep go install ${FLAGS[@]} $pkgs"
             godep go install "${FLAGS[@]}" $pkgs
         fi
+    ;;
+    glide)
+        GOBIN=$build/bin export GOBIN
+        GOPATH=$build/.heroku/go export GOPATH
+        PATH=$GOROOT/bin:$PATH
+
+        p=$GOPATH/src/$name
+        mkdir -p $p
+        cp -R $build/* $p
+
+        case $ver in
+        go1.5*)
+            if test "$GO15VENDOREXPERIMENT" = "1"
+            then
+                warn ""
+                warn "\$GO15VENDOREXPERIMENT=1. This is an experiment. Things may not work as expected."
+                warn "See https://devcenter.heroku.com/articles/go-support#go-1-5-vendor-experiment for more info."
+                warn "But cool, with glide you can have fun!"
+            else
+                GO15VENDOREXPERIMENT="1"
+            fi
+            VendorExperiment="true"
+        ;;
+        go1.6*)
+            if test "$GO15VENDOREXPERIMENT" = "0"
+            then
+                VendorExperiment="false"
+            else
+                VendorExperiment="true"
+            fi
+        ;;
+        *)
+            VendorExperiment="false"
+        ;;
+        esac
+
+        unset GIT_DIR # unset git dir or it will mess with goinstall
+        cd $p
+        step "Running: glide install -v ${FLAGS[@]} $pkgs"
+        glide install
     ;;
     gb)
         warn ""
