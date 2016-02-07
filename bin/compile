@@ -280,6 +280,7 @@ case $TOOL in
         cd $p
         step "Running: glide install -v ${FLAGS[@]} $pkgs"
         glide install
+        go install
     ;;
     gb)
         warn ""
