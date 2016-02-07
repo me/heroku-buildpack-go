@@ -127,6 +127,7 @@ then
 elif test -f "$build/glide.lock"
 then
     warn "We are using experimental glide!"
+    ver=${GOVERSION:-$DEFAULT_GO_VERSION}
     TOOL="glide"
 elif (test -d "$build/src" && test -n "$(find "$build/src" -type f -name '*.go' | sed 1q)")
 then
